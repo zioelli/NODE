@@ -51,3 +51,7 @@ Assicurati che i dati inseriti siano corretti (formato data/ora: gg/mm/aaaa e hh
 
 ### 🤝 Contributi
 Se vuoi contribuire al progetto, apri una Pull Request o segnalaci un bug!
+
+### 📂 Versioni dello Script
+Stai cercando una versione precedente?
+* **Versione Precedente (Legacy):** Se hai problemi con l'aggiornamento, puoi sempre recuperare la [Versione 1.0.0 qui](https://github.com/zioelli/NODE/releases/tag/genera_link_gcalendar.py-v1.0).
