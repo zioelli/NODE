@@ -1,6 +1,6 @@
 # Generatore di Link per Google Calendar
 ![Made by DigitalPro](https://img.shields.io/badge/Autore-Prof.%20G.Mirante-blue)
-![Versione](https://img.shields.io/badge/Version-1.0-blue)
+![Versione](https://img.shields.io/badge/Version-1.1.1-blue)
 
 # Generatore di Link per Google Calendar
 
