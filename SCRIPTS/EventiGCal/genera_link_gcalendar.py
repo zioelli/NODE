@@ -1,38 +1,84 @@
 from urllib.parse import quote
+from datetime import datetime
+
+#Fuso orario e formato data usati in tutto il programma
+FORMATO_DATA = "%d/%m/%Y"
+TIMEZONE = "Europe/Rome"
+
+def valida_data(messaggio):
+    #Chiede una data all'utente e la ripete finché il formato è corretto
+    while True:
+        valore = input(messaggio)
+        try:
+            #strptime verifica che la data esista davvero (es. 31/02 viene rifiutato)
+            return datetime.strptime(valore, FORMATO_DATA).date()
+        except ValueError:
+            print("Formato non valido. Riprova (es: 15/05/2024).")
+
+def valida_ora(messaggio):
+    #Chiede un orario all'utente e lo ripete finché il formato è corretto
+    while True:
+        valore = input(messaggio)
+        try:
+            h, m = map(int, valore.split(':'))
+            #Controlla che ore e minuti siano in un intervallo sensato
+            if 0 <= h <= 23 and 0 <= m <= 59:
+                return valore.strip()
+            raise ValueError
+        except ValueError:
+            print("Formato non valido. Riprova (es: 09:30).")
+
+def combina_datetime(data, ora):
+    #Unisce data e ora in una stringa nel formato richiesto da Google Calendar (YYYYMMDDTHHmmSS)
+    dt = datetime.strptime(f"{data} {ora}", "%Y-%m-%d %H:%M")
+    return dt.strftime("%Y%m%dT%H%M%S")
+
+def valida_fine_evento(inizio):
+    #Chiede data e ora di fine evento, ripetendo finché sono successive all'inizio
+    while True:
+        data_f = valida_data("Data fine (gg/mm/aaaa): ")
+        ora_f  = valida_ora("Ora fine (hh:mm): ")
+        fine   = combina_datetime(data_f, ora_f)
+
+        #Confronta fine con inizio e segnala l'errore senza uscire dal programma
+        if fine > inizio:
+            return fine
+        print("La data/ora di fine deve essere successiva a quella di inizio. Reimmetti la data di fine.")
 
 def genera_link_gcalendar():
-    print("Inserisci i dettagli dell'evento:")
+    print("--- Generatore Link Google Calendar ---")
 
-    # IT: Qui viene richiesto di inserire i dati di inizio evento
-    data_inizio = input("Data inizio (formato: gg/mm/aaaa): ")
-    ora_inizio = input("Ora inizio (formato: hh:mm): ")
-    giorno, mese, anno = data_inizio.split('/')
-    hh, mm = ora_inizio.split(':')
-    inizio = f"{anno}{mese.zfill(2)}{giorno.zfill(2)}T{hh.zfill(2)}{mm.zfill(2)}00" # IT: zfill serve ad aggiungere zeri nel caso l'utente non rispetti il format data
+    #Acquisizione e validazione delle date e degli orari di inizio evento
+    data_i = valida_data("Data inizio (gg/mm/aaaa): ")
+    ora_i  = valida_ora("Ora inizio (hh:mm): ")
+    inizio = combina_datetime(data_i, ora_i)
+
+    #Acquisizione fine evento: si ripete finché la fine è successiva all'inizio
+    fine = valida_fine_evento(inizio)
     
-    # IT: Qui viene richiesto di inserire i dati di fine evento
-    data_fine = input("Data fine (formato: gg/mm/aaaa): ")
-    ora_fine = input("Ora fine (formato: hh:mm): ")
-    giorno, mese, anno = data_fine.split('/')
-    hh, mm = ora_fine.split(':')
-    fine = f"{anno}{mese.zfill(2)}{giorno.zfill(2)}T{hh.zfill(2)}{mm.zfill(2)}00"
-
-    # IT: Inserimento di titolo, location, note
-    titolo = input("Titolo dell'evento: ")
+    #Acquisizione testo libero: quote() codifica i caratteri speciali per l'URL
+    #(es. spazi convertito in %20, & convertita in %26) così il link rimane valido qualunque cosa scriva l'utente
+    titolo   = input("Titolo dell'evento: ")
     location = input("Location dell'evento: ")
-    note = input("Note/dettagli dell'evento: ")
+    note     = input("Note/dettagli dell'evento: ")
 
-    # IT: URL encode: serve ad adattare il testo al formato url (Esempio: elimina gli spazi)
-    titolo_encoded = quote(titolo)
-    location_encoded = quote(location)
-    note_encoded = quote(note)
+    #Costruzione dell'URL secondo le specifiche di Google Calendar
+    #ctz imposta il fuso orario così l'ora viene interpretata correttamente
+    link = (
+        f"https://www.google.com/calendar/event?action=TEMPLATE"
+        f"&dates={inizio}%2F{fine}"   #%2F è la codifica URL di /
+        f"&text={quote(titolo)}"
+        f"&location={quote(location)}"
+        f"&details={quote(note)}"
+        f"&ctz={TIMEZONE}"
+    )
 
-    # IT: Generazione link
-    link = f"https://www.google.com/calendar/event?action=TEMPLATE&dates={inizio}%2F{fine}&text={titolo_encoded}&location={location_encoded}&details={note_encoded}"
-
-    print("\nLink generato:")
+    print("\nLink generato con successo:")
+    print("-" * 30)
     print(link)
+    print("-" * 30)
 
 if __name__ == "__main__":
     genera_link_gcalendar()
-input("\nPremi un tasto per chiudere la finestra...")  # IT: Questa riga tiene aperta la finestra
+    #Mantiene la finestra aperta dopo la generazione, utile se lanciato con doppio clic
+    input("\nPremi Invio per uscire...")
